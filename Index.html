@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿QUÉ VEO? 🍿</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1e1b4b, #312e81);
+            font-family: 'Poppins', sans-serif;
+        }
+        .titulo {
+            text-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+        }
+        .peli-card {
+            transition: all 0.3s ease;
+        }
+        .peli-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+        .buscador:focus {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.5);
+        }
+    </style>
+</head>
+<body class="p-4">
+    <div class="container mx-auto max-w-6xl">
+
+        <header class="text-center mt-8 mb-12">
+            <h1 class="titulo text-6xl md:text-8xl text-yellow-400 font-black mb-4">¿QUÉ VEO?</h1>
+            <p class="text-gray-300 text-xl md:text-2xl">Encuentra cualquier película y serie 🍿</p>
+        </header>
+
+        <div class="bg-black/40 p-6 rounded-3xl shadow-2xl mb-10">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input 
+                    type="text" 
+                    id="busqueda" 
+                    placeholder="Escribe el nombre (ej: Batman, Titanic)..." 
+                    class="buscador flex-1 bg-gray-900/70 border-2 border-gray-700 rounded-2xl px-6 py-4 text-xl text-white focus:outline-none focus:border-yellow-400 transition-all"
+                >
+                <button 
+                    onclick="buscarPelicula()" 
+                    class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 px-8 rounded-2xl text-xl transition-all transform hover:scale-105 uppercase"
+                >
+                    🔍 BUSCAR
+                </button>
+            </div>
+        </div>
+
+        <div id="resultados" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Las películas aparecerán aquí -->
+            <p class="text-center text-gray-400 col-span-full text-2xl">¡Escribe algo y dale a buscar!</p>
+        </div>
+
+    </div>
+
+    <script>
+        // NUEVA CONEXIÓN QUE FUNCIONA AL INSTANTE
+        const API_KEY = '872969d4'; 
+        const URL_BASE = 'https://www.omdbapi.com/?apikey=' + API_KEY + '&type=movie&s=';
+
+        async function buscarPelicula() {
+            const busqueda = document.getElementById('busqueda').value.trim();
+            const resultadosDiv = document.getElementById('resultados');
+            
+            if(!busqueda) {
+                resultadosDiv.innerHTML = '<p class="text-center text-red-400 col-span-full text-2xl">⚠️ Escribe algo para buscar</p>';
+                return;
+            }
+
+            resultadosDiv.innerHTML = '<p class="text-center text-yellow-400 col-span-full text-2xl">🔍 Buscando en la nube...</p>';
+
+            try {
+                const respuesta = await fetch(URL_BASE + encodeURIComponent(busqueda));
+                const datos = await respuesta.json();
+
+                if(datos.Response === "True") {
+                    resultadosDiv.innerHTML = '';
+                    datos.Search.forEach(peli => {
+                        const imagen = peli.Poster !== "N/A" ? peli.Poster : 'https://via.placeholder.com/300x450?text=NO+IMAGE';
+                        
+                        const tarjeta = document.createElement('div');
+                        tarjeta.className = "peli-card bg-gray-800 rounded-2xl overflow-hidden border border-gray-700";
+                        tarjeta.innerHTML = `
+                            <img src="${imagen}" alt="${peli.Title}" class="w-full h-96 object-cover">
+                            <div class="p-5">
+                                <h3 class="titulo text-2xl text-white font-bold mb-2">${peli.Title}</h3>
+                                <p class="text-gray-400 text-lg">📅 Año: ${peli.Year}</p>
+                                <p class="text-gray-400 text-lg">🎬 Tipo: ${peli.Type}</p>
+                            </div>
+                        `;
+                        resultadosDiv.appendChild(tarjeta);
+                    });
+                } else {
+                    resultadosDiv.innerHTML = '<p class="text-center text-red-400 col-span-full text-2xl">❌ No encontramos nada, intenta otra palabra</p>';
+                }
+            } catch(error) {
+                resultadosDiv.innerHTML = '<p class="text-center text-red-400 col-span-full text-2xl">⚠️ Error de conexión, intenta de nuevo</p>';
+            }
+        }
+
+        // Para que funcione con Enter
+        document.getElementById('busqueda').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') buscarPelicula();
+        });
+    </script>
+</body>
+  </html>
+  
